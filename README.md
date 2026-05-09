@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Headless WordPress Demo
 
-## Getting Started
+WordPressをヘッドレスCMSとして利用し、WordPress REST APIから取得した投稿データをNext.jsで表示するMVPデモです。
 
-First, run the development server:
+既存のWordPress資産を活かしながら、Next.jsで表示部分を分離する構成には実務需要があると考え、Headless WordPressの検証用プロジェクトとして作成しました。
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 使用技術
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- WordPress REST API
+- Vercel
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 実装内容
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- WordPress REST APIから投稿データを取得
+- Next.jsのServer Componentで記事ページを表示
+- `layout.tsx` による共通ヘッダー・フッターの実装
+- Tailwind CSSによる記事本文の装飾
+- WordPressから返るHTML文字列を `dangerouslySetInnerHTML` で表示
+- `.env.local` によるAPI URLと投稿IDの管理
 
-## Learn More
+## WordPress REST APIの扱い
 
-To learn more about Next.js, take a look at the following resources:
+WordPress REST APIでは、投稿タイトルや本文が以下のようなHTML文字列として返ります。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `title.rendered`
+- `content.rendered`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+そのため、Next.js側では `dangerouslySetInnerHTML` を使って、WordPress本文をHTMLとして描画しています。
 
-## Deploy on Vercel
+また、WordPress本文内の `h2`、`p`、`ul`、`li` などには直接 `className` を付与できないため、親要素にTailwind CSSの任意セレクタを指定して装飾しています。
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+例：
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`[&_h2]:text-2xl`  
+`[&_p]:leading-8`  
+`[&_li]:list-disc`
+
+これは「この要素の中にある h2 / p / li に対してTailwindのスタイルを適用する」という意味です。
+
+## 注意点
+
+`dangerouslySetInnerHTML` はHTML文字列をそのまま描画するため、XSSリスクに注意が必要です。
+
+今回のMVPでは、自分で管理しているWordPressの公開済み投稿のみを表示対象としているため使用しています。
+
+実務でユーザー投稿や外部入力を扱う場合は、サニタイズ処理や表示対象の制限を検討する必要があります。
+
+## 学習・検証ポイント
+
+このプロジェクトでは、以下を検証しました。
+
+- WordPressをCMSとして使い、Next.js側で表示する構成
+- Server Componentで外部APIからデータ取得する流れ
+- 環境変数によるAPI URL管理
+- WordPress本文HTMLの表示方法
+- Tailwind CSSでCMS由来のHTMLを装飾する方法
+- Headless WordPress構成のMVP実装
+
+## 今後の拡張案
+
+- 投稿一覧ページの作成
+- slugを使った記事詳細ページの動的ルーティング
+- アイキャッチ画像の表示
+- カテゴリー・タグ表示
+- OGP設定
+- ISR / revalidate の調整
+- サニタイズ処理の検討
